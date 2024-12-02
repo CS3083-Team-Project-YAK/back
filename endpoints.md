@@ -138,7 +138,7 @@
 
 #### Endpoints
 
-1. **Create a Team (Join a League)**
+1. **Create a Team**
    - **POST** `/api/teams`
    - **Input**:
 
@@ -151,9 +151,7 @@
 
    - **Output**:
 
-     ```json
-     {"team_id": 1, "message": "Team created successfully. You have joined the league."}
-     ```
+     return json of the team as get team.
 
 2. **Get Teams in a League**
    - **GET** `/api/teams`
@@ -179,9 +177,7 @@
 
    - **Output**:
 
-     ```json
-     {"message": "Team updated successfully"}
-     ```
+    return json of the team as get team.
 
 4. **Delete Team**
    - **DELETE** `/api/teams/{team_id}`

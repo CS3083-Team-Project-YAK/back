@@ -8,8 +8,8 @@ class TeamBase(BaseModel):
     ranking: Optional[int]
     status: Optional[str]
 
-class TeamCreate(TeamBase):
-    pass
+class TeamCreate(BaseModel):
+    leagueID: int
 
 class TeamUpdate(BaseModel):
     status: Optional[str]
