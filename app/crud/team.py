@@ -32,5 +32,8 @@ def delete_team(db: Session, team_id: int):
         db.commit()
     return db_team
 
-def get_league(db: Session, league_id: int):
-    return db.query(League).filter(League.leagueID == league_id).first()
+def get_league_by_team(db: Session, team_id: int):
+    db_team = db.query(Team).filter(Team.teamID == team_id).first()
+    if db_team:
+        return db.query(League).filter(League.leagueID == db_team.leagueID).first()
+    return None

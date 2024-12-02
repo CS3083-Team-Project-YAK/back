@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional
+from datetime import date
 
 class PlayerBase(BaseModel):
     full_name: str
@@ -21,6 +22,22 @@ class PlayerUpdate(BaseModel):
 
 class PlayerResponse(PlayerBase):
     playerID: int
+
+    class Config:
+        orm_mode: True
+
+class PlayerStatisticsResponse(BaseModel):
+    statisticsID: int
+    playerID: int
+    match_date: str
+    performance_stats: str
+    injury_status: Optional[str]
+
+    @field_validator('match_date', mode='before')
+    def format_draft_date(cls, v):
+        if isinstance(v, date):
+            return v.isoformat()
+        return v
 
     class Config:
         orm_mode: True

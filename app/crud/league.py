@@ -13,6 +13,9 @@ def get_leagues(db: Session, league_type: str = None):
 def get_leagues_by_commissioner(db: Session, commissioner_id: int):
     return db.query(League).filter(League.commissioner == commissioner_id).all()
 
+def get_league_by_commissioner(db: Session, commissioner_id: int):
+    return db.query(League).filter(League.commissioner == commissioner_id).first()
+
 def create_league(db: Session, league: LeagueCreate, commissioner_id: int):
     db_league = League(**league.model_dump(), commissioner=commissioner_id)
     db.add(db_league)
