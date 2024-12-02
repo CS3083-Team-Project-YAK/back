@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from app.models.team import Team
 from app.models.league import League
 from app.schemas.team import TeamCreate, TeamUpdate
@@ -37,3 +38,7 @@ def get_league_by_team(db: Session, team_id: int):
     if db_team:
         return db.query(League).filter(League.leagueID == db_team.leagueID).first()
     return None
+
+def update_team_rankings(db: Session, league_id: int):
+    db.execute(text("CALL UpdateTeamRankings(:league_id);"), {'league_id': league_id})
+    db.commit()

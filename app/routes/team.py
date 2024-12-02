@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.team import TeamCreate, TeamUpdate, TeamResponse
 from app.crud import team as crud_team
+from app.crud import league as crud_league
 from app.utils.security import get_current_user
 from app.models.user import User
 
@@ -50,3 +51,13 @@ def delete_team(team_id: int, db: Session = Depends(get_db), current_user: User 
         raise HTTPException(status_code=403, detail="Not authorized to delete this team")
     crud_team.delete_team(db=db, team_id=team_id)
     return {"message": "Team deleted successfully"}
+
+@router.post("/teams/{league_id}/update-rankings", response_model=dict)
+def update_team_rankings(league_id: int, db: Session = Depends(get_db)):
+    db_league = crud_league.get_league(db=db, league_id=league_id)
+    if db_league is None:
+        raise HTTPException(status_code=404, detail="League not found")
+    # if db_league.commissioner != current_user.userID:
+    #     raise HTTPException(status_code=403, detail="Not authorized to update team rankings in this league")
+    crud_team.update_team_rankings(db=db, league_id=league_id)
+    return {"message": "Team rankings updated successfully"}

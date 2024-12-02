@@ -197,48 +197,17 @@ CREATE TABLE `waiver` (
   CONSTRAINT `waiver_ibfk_2` FOREIGN KEY (`playerID`) REFERENCES `player` (`playerID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- ----------------------------
--- Procedure structure for process_waiver
--- ----------------------------
-DROP PROCEDURE IF EXISTS `process_waiver`;
-delimiter ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `process_waiver`(
-    IN waiver_id DECIMAL(8, 0),
-    IN action CHAR(1)
-)
+
+-- Trigger: Update Total Fantasy Points After Match Event
+-- This trigger automatically updates a player's fantasy_points in the player table whenever a new event is recorded in the event table.
+DELIMITER $$
+
+CREATE TRIGGER update_fantasy_points
+AFTER INSERT ON event
+FOR EACH ROW
 BEGIN
-    DECLARE player_id DECIMAL(8, 0);
-    DECLARE team_id DECIMAL(8, 0);
-
-    SELECT playerID, teamID INTO player_id, team_id
-    FROM waiver
-    WHERE waiverID = waiver_id;
-
-    IF action = 'A' THEN
-        UPDATE player
-        SET teamID = team_id, availability_status = 'U'
-        WHERE playerID = player_id;
-
-        UPDATE waiver
-        SET waiver_status = 'A'
-        WHERE waiverID = waiver_id;
-    ELSEIF action = 'R' THEN
-        UPDATE waiver
-        SET waiver_status = 'R'
-        WHERE waiverID = waiver_id;
-    END IF;
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Triggers structure for table event
--- ----------------------------
-DROP TRIGGER IF EXISTS `update_fantasy_points`;
-delimiter ;;
-CREATE TRIGGER `league`.`update_fantasy_points` AFTER INSERT ON `event` FOR EACH ROW BEGIN
     DECLARE current_points DECIMAL(6, 2);
-    DECLARE player_id DECIMAL(8, 0);
+    DECLARE player_id int(10);
     DECLARE done BOOLEAN DEFAULT FALSE;
 
     -- Cursor to retrieve all player IDs associated with the new event
@@ -273,8 +242,92 @@ CREATE TRIGGER `league`.`update_fantasy_points` AFTER INSERT ON `event` FOR EACH
 
     -- Close the cursor
     CLOSE player_cursor;
-END
-;;
-delimiter ;
+END $$
 
-SET FOREIGN_KEY_CHECKS = 1;
+DELIMITER ;
+
+
+-- Stored Procedure: Approve or Reject Waiver Requests
+-- This procedure processes waiver requests by either approving or rejecting them based on the provided action.
+DELIMITER $$
+
+CREATE PROCEDURE process_waiver(
+    IN waiver_id int(10),
+    IN action CHAR(1)
+)
+BEGIN
+    DECLARE player_id int(10);
+    DECLARE team_id int(10);
+
+    SELECT playerID, teamID INTO player_id, team_id
+    FROM waiver
+    WHERE waiverID = waiver_id;
+
+    IF action = 'A' THEN
+        UPDATE player
+        SET teamID = team_id, availability_status = 'U'
+        WHERE playerID = player_id;
+
+        UPDATE waiver
+        SET waiver_status = 'A'
+        WHERE waiverID = waiver_id;
+    ELSEIF action = 'R' THEN
+        UPDATE waiver
+        SET waiver_status = 'R'
+        WHERE waiverID = waiver_id;
+    END IF;
+END $$
+
+DELIMITER ;
+
+
+-- PROCEDURE: CALL UpdateTeamRankings(leagueID) to update the rankings of teams in that league
+DELIMITER $$
+
+CREATE PROCEDURE UpdateTeamRankings(IN league INT)
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE rank INT DEFAULT 0;
+    DECLARE prev_points DECIMAL(6,2) DEFAULT NULL;
+    DECLARE cur_teamID INT;
+    DECLARE cur_points DECIMAL(6,2);
+
+    -- Cursor to select teams in the specified league ordered by total_points DESC
+    DECLARE cur CURSOR FOR
+        SELECT teamID, total_points
+        FROM team
+        WHERE leagueID = league
+        ORDER BY total_points DESC, teamID;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- Open the cursor
+    OPEN cur;
+
+    -- Loop through the cursor
+    read_loop: LOOP
+        FETCH cur INTO cur_teamID, cur_points;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Increment rank if points differ from previous team
+        IF prev_points IS NULL OR cur_points <> prev_points THEN
+            SET rank = rank + 1;
+        END IF;
+
+        -- Update the team's ranking
+        UPDATE team
+        SET ranking = rank
+        WHERE teamID = cur_teamID;
+
+        SET prev_points = cur_points;
+    END LOOP;
+
+    -- Close the cursor
+    CLOSE cur;
+END$$
+
+DELIMITER ;
+
+
