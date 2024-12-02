@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 from app.database import get_db
-from app.routes import user, league, team, player
+from app.routes import user, league, team, player, match
 
 app = FastAPI()
 
@@ -13,6 +13,7 @@ app.include_router(user.router, prefix="/api", tags=["users"])
 app.include_router(league.router, prefix="/api", tags=["leagues"])
 app.include_router(team.router, prefix="/api", tags=["teams"])
 app.include_router(player.router, prefix="/api", tags=["players"])
+app.include_router(match.router, prefix="/api", tags=["matches"])
 
 
 

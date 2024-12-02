@@ -311,3 +311,196 @@
    - **Output**:
 
     return all players in that team.
+
+----
+
+### **1. Match Management**
+#### Endpoints:
+1. **Get Match Details**
+   - **GET** `/api/matches/{match_id}`
+   - **Output**:
+     ```json
+     {
+       "match_id": 1,
+       "team1": team1ID,
+       "team2": team1ID,
+       "date": "2024-12-05",
+       "final_score": "75-68",
+       "winner_team_id": 1
+     }
+     ```
+
+2. **Create a Match**
+   - **POST** `/api/matches`
+   - **Input**:
+     ```json
+     {
+       "team1_id": 1,
+       "team2_id": 2,
+       "match_date": "2024-12-05"
+     }
+     ```
+   - **Output**:
+     ```json
+     {"match_id": 1, "message": "Match created successfully"}
+     ```
+
+3. **Update Match Results**
+   - **POST** `/api/matches/{match_id}/results`
+   - **Input**:
+     ```json
+     {
+       "winner_team_id": 1,
+       "final_score": "75-68"
+     }
+     ```
+   - **Output**:
+     ```json
+     {"message": "Match results updated successfully"}
+     ```
+Here is the new endpoint for retrieving all matches with ID fields (e.g., team IDs) converted to their corresponding names.
+
+---
+
+4. **Get Matches**
+	- **Endpoint**
+	- **GET** `/api/matches`
+	- **Description**: Returns all matches in the `matches` table with IDs (like `team1ID`, `team2ID`, `winner`) converted to corresponding names.
+
+	- **Output**
+	```json
+	[
+	  {
+	    "match_id": 1,
+	    "team1": "Dream Team",
+	    "team2": "Super Squad",
+	    "winner": "Dream Team",
+	    "match_date": "2024-12-05",
+	    "final_score": "75-68"
+	  },
+	  {
+	    "match_id": 2,
+	    "team1": "Thunderbolts",
+	    "team2": "Rising Stars",
+	    "winner": "Thunderbolts",
+	    "match_date": "2024-12-06",
+	    "final_score": "90-85"
+	  }
+	]
+	```
+
+---
+
+### **2. Event Management**
+#### Endpoints:
+1. **Add Event**
+   - **POST** `/api/matches/{match_id}/events`
+   - **Input**:
+     ```json
+     {
+       "event_type": "goal",
+       "event_time": "12:30",
+       "impact_on_points": 5.0,
+       "player_id": 2
+     }
+     ```
+   - **Backend Logic**:
+     - Insert the event into the `event` table.
+     - Insert the association into the `player_event` table.
+     - Call the procedure to recalculate the player's fantasy points:
+       ```sql
+       CALL update_fantasy_points(2);
+       ```
+   - **Output**:
+     ```json
+     {"message": "Event added successfully"}
+     ```
+
+2. **Get Events for a Match**
+   - **GET** `/api/matches/{match_id}/events`
+   - **Output**:
+     ```json
+     [
+       {
+         "event_id": 1,
+         "type": "goal",
+         "time": "12:30",
+         "impact_on_points": 5.0,
+         "player": {
+           "player_id": 2,
+           "name": "Player One"
+         }
+       },
+       {
+         "event_id": 2,
+         "type": "assist",
+         "time": "12:45",
+         "impact_on_points": 3.0,
+         "player": {
+           "player_id": 3,
+           "name": "Player Two"
+         }
+       }
+     ]
+     ```
+
+3. **Update Event**
+   - **PUT** `/api/events/{event_id}`
+   - **Input**:
+     ```json
+     {
+       "event_type": "assist",
+       "event_time": "12:35",
+       "impact_on_points": 3.5,
+       "player_id": 2
+     }
+     ```
+   - **Backend Logic**:
+     - Update the event in the `event` table.
+     - Recalculate fantasy points for all players associated with the updated event:
+       ```sql
+       CALL update_fantasy_points_by_event(eventID);
+       ```
+   - **Output**:
+     ```json
+     {"message": "Event updated successfully"}
+     ```
+
+---
+
+### **3. Player Management**
+#### Endpoints:
+
+1. **Recalculate Player Fantasy Points**
+   - **POST** `/api/players/{player_id}/recalculate`
+   - **Backend Logic**:
+     - Call the stored procedure:
+       ```sql
+       CALL update_fantasy_points(playerID);
+       ```
+   - **Output**:
+     ```json
+     {"message": "Player fantasy points recalculated successfully"}
+     ```
+
+2. **Get Player Events**
+   - **GET** `/api/players/{player_id}/events`
+   - **Output**:
+     ```json
+     [
+       {
+         "event_id": 1,
+         "match_id": 1,
+         "type": "goal",
+         "time": "12:30",
+         "impact_on_points": 5.0
+       },
+       {
+         "event_id": 2,
+         "match_id": 1,
+         "type": "assist",
+         "time": "12:45",
+         "impact_on_points": 3.0
+       }
+     ]
+     ```
