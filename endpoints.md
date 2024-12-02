@@ -305,3 +305,9 @@
      ```json
      {"message": "Player removed from team successfully"}
      ```
+
+4. **List all player in one team**
+   - **GET** `/api/teams/{team_id}/players`
+   - **Output**:
+
+    return all players in that team.

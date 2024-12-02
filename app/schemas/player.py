@@ -11,10 +11,12 @@ class PlayerBase(BaseModel):
     availability_status: Optional[str]
 
 class PlayerCreate(PlayerBase):
-    pass
+    real_team: str
 
 class PlayerUpdate(BaseModel):
     teamID: Optional[int]
+    real_team: Optional[str]
+    position: Optional[str]
     availability_status: Optional[str]
 
 class PlayerResponse(PlayerBase):
