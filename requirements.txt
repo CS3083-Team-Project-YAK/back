@@ -1,7 +1,9 @@
-fastapi
-uvicorn
+fastapi[standard]
+uvicorn[standard]
 sqlalchemy
 pydantic
 python-dotenv
 passlib[bcrypt]
-python-jose
+python-jose[cryptography]
+pymysql
+email-validator
