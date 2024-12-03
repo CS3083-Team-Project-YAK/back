@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.post("/teams/", response_model=TeamResponse)
 def create_team(team: TeamCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    db_league = crud_team.get_league(db=db, league_id=team.leagueID)
+    db_league = crud_league.get_league(db=db, league_id=team.leagueID)
     if db_league is None:
         raise HTTPException(status_code=404, detail="League not found")
     if db_league.league_type == 'R' and db_league.commissioner != current_user.userID:
@@ -20,7 +20,7 @@ def create_team(team: TeamCreate, db: Session = Depends(get_db), current_user: U
 
 @router.get("/teams/", response_model=list[TeamResponse])
 def read_teams(league_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    db_league = crud_team.get_league(db=db, league_id=league_id)
+    db_league = crud_league.get_league(db=db, league_id=league_id)
     if db_league is None:
         raise HTTPException(status_code=404, detail="League not found")
     if db_league.league_type == 'R' and db_league.commissioner != current_user.userID:
@@ -32,7 +32,7 @@ def update_team(team_id: int, team: TeamUpdate, db: Session = Depends(get_db), c
     db_team = crud_team.get_team(db=db, team_id=team_id)
     if db_team is None:
         raise HTTPException(status_code=404, detail="Team not found")
-    db_league = crud_team.get_league(db=db, league_id=db_team.leagueID)
+    db_league = crud_league.get_league(db=db, league_id=db_team.leagueID)
     if db_league.league_type == 'R' and db_league.commissioner != current_user.userID:
         raise HTTPException(status_code=403, detail="Not authorized to update a team in this private league")
     if db_team.owner != current_user.userID:
@@ -44,7 +44,7 @@ def delete_team(team_id: int, db: Session = Depends(get_db), current_user: User 
     db_team = crud_team.get_team(db=db, team_id=team_id)
     if db_team is None:
         raise HTTPException(status_code=404, detail="Team not found")
-    db_league = crud_team.get_league(db=db, league_id=db_team.leagueID)
+    db_league = crud_league.get_league(db=db, league_id=db_team.leagueID)
     if db_league.league_type == 'R' and db_league.commissioner != current_user.userID:
         raise HTTPException(status_code=403, detail="Not authorized to delete a team in this private league")
     if db_team.owner != current_user.userID:

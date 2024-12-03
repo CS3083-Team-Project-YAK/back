@@ -24,6 +24,7 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
 def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     from app.crud.user import get_user_by_username  # Local import to avoid circular dependency
     db_user = get_user_by_username(db, username=form_data.username)
+    print(form_data.username, form_data.password)
     if not db_user or not verify_password(form_data.password, db_user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
