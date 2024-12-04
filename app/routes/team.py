@@ -27,6 +27,16 @@ def read_teams(league_id: int, db: Session = Depends(get_db), current_user: User
         raise HTTPException(status_code=403, detail="Not authorized to view teams in this private league")
     return crud_team.get_teams_by_league(db=db, league_id=league_id)
 
+@router.get("/teams/all/", response_model=list[TeamResponse])
+def read_all_teams(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    teams = crud_team.get_all_teams(db)
+    # Filter out teams from private leagues where user is not the commissioner
+    return [
+        team for team in teams 
+        if crud_league.get_league(db, team.leagueID).league_type != 'R' or 
+        crud_league.get_league(db, team.leagueID).commissioner == current_user.userID
+    ]
+
 @router.put("/teams/{team_id}", response_model=TeamResponse)
 def update_team(team_id: int, team: TeamUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     db_team = crud_team.get_team(db=db, team_id=team_id)

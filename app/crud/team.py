@@ -10,6 +10,9 @@ def get_team(db: Session, team_id: int):
 def get_teams_by_league(db: Session, league_id: int):
     return db.query(Team).filter(Team.leagueID == league_id).all()
 
+def get_all_teams(db: Session):
+    return db.query(Team).all()
+
 def create_team(db: Session, team: TeamCreate, owner_id: int):
     db_team = Team(leagueID=team.leagueID, owner=owner_id)
     db.add(db_team)
