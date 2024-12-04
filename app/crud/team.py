@@ -18,6 +18,8 @@ def create_team(db: Session, team: TeamCreate, owner_id: int):
     db.add(db_team)
     db.commit()
     db.refresh(db_team)
+    db.execute(text("CALL UpdateTeamRankings(:league_id);"), {'league_id': team.leagueID})
+    db.commit()
     return db_team
 
 def update_team(db: Session, team_id: int, team: TeamUpdate):
